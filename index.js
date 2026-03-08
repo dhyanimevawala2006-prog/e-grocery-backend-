@@ -4,6 +4,7 @@ const port = 3000
 const cors=require('cors');
 const productRoute=require('./routes/productroute')
 const userRoute=require('./routes/userroute')
+const wishlistRoute = require("./routes/wishlistRoute")
 
 app.use(cors());
 app.use(express.json());
@@ -14,6 +15,7 @@ app.use('/api',productRoute)
 app.use('/api',userRoute)
 app.use('/api',require('./routes/cartRoute'))
 app.use('/api/order',require('./routes/orderRoute'))
+app.use("/api", wishlistRoute)
 
 const mongoose=require('mongoose');
 
