@@ -1,4 +1,4 @@
-const u_service=require('../services/userService')
+const u_service = require("../services/userService");
 const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 
@@ -10,7 +10,7 @@ const loginUser = async (req, res) => {
     // Check if email and password provided
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email and password are required"
+        message: "Email and password are required",
       });
     }
 
@@ -19,16 +19,16 @@ const loginUser = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     // Compare password
     // const isMatch = await bcrypt.compare(password, user.password);
 
-    if (password!==user.password) {
+    if (password !== user.password) {
       return res.status(401).json({
-        message: "Invalid password"
+        message: "Invalid password",
       });
     }
 
@@ -41,38 +41,57 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-    //   token: token,
+      //   token: token,
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        mobileno: user.mobileno
-      }
+        mobileno: user.mobileno,
+      },
     });
-
   } catch (error) {
     res.status(500).json({
-      message: error.message
+      message: error.message,
     });
   }
 };
 
-const registerUser=async(req,res)=>{
-    try{
-        const newUser = await u_service.add(req.body);
-        res.status(200).json({message: "registered successfully", data: newUser });
-    }catch(err){
-        res.status(500).json({message: err.message});
+const registerUser = async (req, res) => {
+  try {
+    const newUser = await u_service.add(req.body);
+
+    res.status(200).json({
+      message: "User registered successfully",
+      data: newUser,
+    });
+  } catch (err) {
+    // Duplicate key error
+    if (err.code === 11000) {
+      if (err.keyPattern.email) {
+        return res.status(400).json({
+          message: "Email already registered",
+        });
+      }
+
+      if (err.keyPattern.mobileno) {
+        return res.status(400).json({
+          message: "Mobile number already registered",
+        });
+      }
     }
+
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
 };
 
-const getAllUsers=async(req,res)=>{
-    try{
-        const all =await  u_service.get();
-        res.status(200).json({message: "ALL USERS", data: all });
-    }catch(err){
-        res.status(500).json({message: err.message});
-    }
-}
-module.exports={registerUser,getAllUsers,loginUser}
-
+const getAllUsers = async (req, res) => {
+  try {
+    const all = await u_service.get();
+    res.status(200).json({ message: "ALL USERS", data: all });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+module.exports = { registerUser, getAllUsers, loginUser };
