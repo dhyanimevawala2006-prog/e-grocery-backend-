@@ -1,20 +1,19 @@
 const u_service = require("../services/userService");
 const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
+const request = require("request");
 
 // ================= LOGIN USER =================
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if email and password provided
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required",
       });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -23,25 +22,14 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Compare password
-    // const isMatch = await bcrypt.compare(password, user.password);
-
     if (password !== user.password) {
       return res.status(401).json({
         message: "Invalid password",
       });
     }
 
-    // Create JWT Token
-    // const token = jwt.sign(
-    //   { id: user._id, email: user.email },
-    //   "your_secret_key",   // change to env key in production
-    //   { expiresIn: "7d" }
-    // );
-
     res.status(200).json({
       message: "Login successful",
-      //   token: token,
       user: {
         id: user._id,
         username: user.username,
@@ -56,42 +44,119 @@ const loginUser = async (req, res) => {
   }
 };
 
-const registerUser = async (req, res) => {
+// ================= SEND OTP =================
+const sendOtp = async (req, res) => {
   try {
-    const newUser = await u_service.add(req.body);
+    const { email, mobileno } = req.body;
 
-    res.status(200).json({
-      message: "User registered successfully",
-      data: newUser,
-    });
-  } catch (err) {
-    // Duplicate key error
-    if (err.code === 11000) {
-      if (err.keyPattern.email) {
-        return res.status(400).json({
-          message: "Email already registered",
-        });
-      }
+    const emailExists = await User.findOne({ email });
 
-      if (err.keyPattern.mobileno) {
-        return res.status(400).json({
-          message: "Mobile number already registered",
-        });
-      }
+    if (emailExists) {
+      return res.status(400).json({
+        message: "Email already registered",
+      });
     }
 
+    const mobileExists = await User.findOne({ mobileno });
+
+    if (mobileExists) {
+      return res.status(400).json({
+        message: "Mobile number already registered",
+      });
+    }
+
+    var options = {
+      method: "POST",
+      url: `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=C-D0F60D108A4D45C&flowType=SMS&mobileNumber=${mobileno}`,
+      headers: {
+        authToken:
+          "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDLUQwRjYwRDEwOEE0RDQ1QyIsImlhdCI6MTc3MzIyMjA2OCwiZXhwIjoxOTMwOTAyMDY4fQ.a-M-2pALKCvPMlwe3O-Cb1WUG0UJQB8hfVNgGdvjzKiRbo7mMKoNercpu5dANSdm1qNWAIPqjrS3bk0LYIyC4g",
+      },
+    };
+
+    request(options, function (error, response) {
+      if (error) {
+        return res.status(500).json({
+          message: "OTP sending failed",
+        });
+      }
+
+      const data = JSON.parse(response.body);
+
+      res.status(200).json({
+        message: "OTP sent successfully",
+        verificationId: data.data.verificationId,
+      });
+    });
+  } catch (err) {
     res.status(500).json({
-      message: "Something went wrong",
+      message: err.message,
     });
   }
 };
 
+// ================= VERIFY OTP =================
+const verifyOtp = async (req, res) => {
+  try {
+    const { verificationId, otp, userData } = req.body;
+
+    var options = {
+      method: "GET",
+      url: `https://cpaas.messagecentral.com/verification/v3/validateOtp?countryCode=91&mobileNumber=${userData.mobileno}&verificationId=${verificationId}&customerId=C-D0F60D108A4D45C&code=${otp}`,
+      headers: {
+        authToken:
+          "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJDLUQwRjYwRDEwOEE0RDQ1QyIsImlhdCI6MTc3MzIyMjA2OCwiZXhwIjoxOTMwOTAyMDY4fQ.a-M-2pALKCvPMlwe3O-Cb1WUG0UJQB8hfVNgGdvjzKiRbo7mMKoNercpu5dANSdm1qNWAIPqjrS3bk0LYIyC4g",
+      },
+    };
+
+    request(options, async function (error, response) {
+      if (error) {
+        return res.status(500).json({
+          message: "OTP verification failed",
+        });
+      }
+
+      const result = JSON.parse(response.body);
+
+      if (result.responseCode === 200) {
+        const newUser = await u_service.add(userData);
+
+        return res.status(200).json({
+          message: "Registration successful",
+          data: newUser,
+        });
+      } else {
+        return res.status(400).json({
+          message: "Invalid OTP",
+        });
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+// ================= GET USERS =================
 const getAllUsers = async (req, res) => {
   try {
     const all = await u_service.get();
-    res.status(200).json({ message: "ALL USERS", data: all });
+
+    res.status(200).json({
+      message: "ALL USERS",
+      data: all,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
-module.exports = { registerUser, getAllUsers, loginUser };
+
+module.exports = {
+  sendOtp,
+  verifyOtp,
+  getAllUsers,
+  loginUser,
+};

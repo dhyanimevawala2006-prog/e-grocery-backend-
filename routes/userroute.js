@@ -1,9 +1,13 @@
-const uController=require('../controllers/usercontroller')
-const express=require('express')
-const router=express.Router()
+const uController = require("../controllers/usercontroller");
+const express = require("express");
+const router = express.Router();
 
-router.post('/register',uController.registerUser)
-router.get('/all',uController.getAllUsers)
-router.post('/login',uController.loginUser)
+router.post("/send-otp", uController.sendOtp);
+router.post("/verify-otp", uController.verifyOtp);
 
-module.exports=router;
+// router.post("/register", uController.registerUser);
+router.post("/login", uController.loginUser);
+
+router.get("/all", uController.getAllUsers);
+
+module.exports = router;
