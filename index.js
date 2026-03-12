@@ -9,6 +9,7 @@ const cartRoute = require("./routes/cartRoute");
 const orderRoute = require("./routes/orderRoute");
 const wishlistRoute = require("./routes/wishlistRoute");
 const adminRoute = require("./routes/adminRoute");
+const couponRoute = require("./routes/couponRoute");
 
 const mongoose = require("mongoose");
 
@@ -24,6 +25,7 @@ app.use("/api/cart", cartRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api", wishlistRoute);
 app.use("/api/admin", adminRoute);
+app.use("/api/coupon", couponRoute);
 
 // DATABASE
 mongoose
