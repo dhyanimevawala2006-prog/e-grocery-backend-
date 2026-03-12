@@ -8,7 +8,10 @@ const userRoute = require("./routes/userroute");
 const cartRoute = require("./routes/cartRoute");
 const orderRoute = require("./routes/orderRoute");
 const wishlistRoute = require("./routes/wishlistRoute");
+<<<<<<< HEAD
 const adminRoute = require("./routes/adminRoute");
+=======
+>>>>>>> 3e75daaee25af5e356bf628a92546edaae09b2f2
 
 const mongoose = require("mongoose");
 
@@ -20,10 +23,16 @@ app.use("/upload", express.static("upload"));
 // ROUTES
 app.use("/api", productRoute);
 app.use("/api", userRoute);
+<<<<<<< HEAD
 app.use("/api/cart", cartRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api", wishlistRoute);
 app.use("/api/admin", adminRoute);
+=======
+app.use("/api", cartRoute);
+app.use("/api/order", orderRoute);
+app.use("/api", wishlistRoute);
+>>>>>>> 3e75daaee25af5e356bf628a92546edaae09b2f2
 
 // DATABASE
 mongoose
