@@ -1,25 +1,23 @@
-<<<<<<< HEAD
 const express = require("express");
 const router = express.Router();
 const cartController = require("../controllers/cartController");
 
+// ADD TO CART
 router.post("/add", cartController.addToCart);
+
+// GET USER CART
 router.get("/:userId", cartController.getCart);
 
+// INCREASE PRODUCT QUANTITY
 router.put("/increase", cartController.increaseQty);
+
+// DECREASE PRODUCT QUANTITY
 router.put("/decrease", cartController.decreaseQty);
 
+// REMOVE SINGLE ITEM
 router.delete("/remove", cartController.removeItem);
-router.delete("/clear", cartController.clearCart);
-=======
-const express = require('express');
-const router = express.Router();
-const cart_Controller = require('../controllers/cartController');
 
-// ================= ADD TO CART =================
-router.post('/addtocart', cart_Controller.addToCart)
-router.get('/getcart/:userId', cart_Controller.getUserCart)
-router.delete('/removecart', cart_Controller.removeFromCart)
->>>>>>> 3e75daaee25af5e356bf628a92546edaae09b2f2
+// CLEAR FULL CART
+router.delete("/clear", cartController.clearCart);
 
 module.exports = router;
